@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Daily Task Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts: Space Grotesk (headings) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ============================================================
+       APP SHELL
+  ============================================================ -->
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+
+        <!-- Brand -->
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+              <rect width="32" height="32" rx="8" fill="#4A9EFF" fill-opacity="0.15"/>
+              <path d="M8 16.5L13 21.5L24 10.5" stroke="#4A9EFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="brand-name">TaskFlow</span>
+        </div>
+
+        <!-- Progress Arc -->
+        <div class="progress-section" aria-label="Task completion progress">
+          <div class="arc-wrap">
+            <svg class="arc-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- Track -->
+              <circle class="arc-track" cx="60" cy="60" r="50" />
+              <!-- Fill — dashoffset animated via JS -->
+              <circle class="arc-fill" id="arcFill" cx="60" cy="60" r="50" />
+            </svg>
+            <div class="arc-label">
+              <span class="arc-pct" id="arcPct">0%</span>
+              <span class="arc-sub">done</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value" id="statTotal">0</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-card stat-card--done">
+            <span class="stat-value" id="statDone">0</span>
+            <span class="stat-label">Done</span>
+          </div>
+          <div class="stat-card stat-card--pending">
+            <span class="stat-value" id="statPending">0</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+
+        <!-- Filter Nav -->
+        <nav class="filter-nav" aria-label="Task filters">
+          <p class="filter-label">View</p>
+          <button class="filter-btn active" data-filter="all">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="16" height="2.5" rx="1.25" fill="currentColor"/><rect x="2" y="8.75" width="16" height="2.5" rx="1.25" fill="currentColor"/><rect x="2" y="14.5" width="10" height="2.5" rx="1.25" fill="currentColor"/></svg>
+            All Tasks
+          </button>
+          <button class="filter-btn" data-filter="pending">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/><path d="M10 6.5V10.5L12.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Pending
+          </button>
+          <button class="filter-btn" data-filter="completed">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/><path d="M6.5 10.5L9 13L13.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Completed
+          </button>
+        </nav>
+
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Top bar (mobile brand + menu toggle) -->
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="brand brand--mobile">
+          <div class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" width="32" height="32"><rect width="32" height="32" rx="8" fill="#4A9EFF" fill-opacity="0.15"/><path d="M8 16.5L13 21.5L24 10.5" stroke="#4A9EFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="brand-name">TaskFlow</span>
+        </div>
+        <!-- Spacer -->
+        <div style="width:40px"></div>
+      </header>
+
+      <!-- Page heading -->
+      <section class="page-head">
+        <div>
+          <h1 class="page-title">My Tasks</h1>
+          <p class="page-date" id="pageDate"></p>
+        </div>
+      </section>
+
+      <!-- Add / Search bar -->
+      <div class="toolbar">
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M13 13L17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="search"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search tasks…"
+            aria-label="Search tasks"
+          />
+        </div>
+
+        <!-- Add Task button (opens modal) -->
+        <button class="btn-add" id="btnOpenModal" aria-haspopup="dialog">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Task
+        </button>
+      </div>
+
+      <!-- Task list container -->
+      <div class="task-list" id="taskList" role="list" aria-live="polite" aria-label="Task list">
+        <!-- Tasks injected by JS -->
+      </div>
+
+      <!-- Empty state (shown when no tasks match) -->
+      <div class="empty-state" id="emptyState" hidden>
+        <div class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="36" stroke="#4A9EFF" stroke-opacity="0.2" stroke-width="2"/>
+            <path d="M26 40h28M40 26v28" stroke="#4A9EFF" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="empty-title" id="emptyTitle">No tasks yet</p>
+        <p class="empty-hint" id="emptyHint">Click <strong>Add Task</strong> to get started.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ============================================================
+       ADD / EDIT MODAL
+  ============================================================ -->
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalHeading" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-heading" id="modalHeading">New Task</h2>
+        <button class="modal-close" id="btnCloseModal" aria-label="Close modal">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Task title -->
+        <label class="field-label" for="taskTitle">Task Title <span aria-hidden="true">*</span></label>
+        <input
+          type="text"
+          id="taskTitle"
+          class="field-input"
+          placeholder="e.g. Review project proposal"
+          maxlength="120"
+          required
+          aria-required="true"
+        />
+        <span class="char-count" id="charCount">0 / 120</span>
+
+        <!-- Priority -->
+        <label class="field-label" for="taskPriority">Priority</label>
+        <div class="priority-group" role="group" aria-label="Task priority">
+          <button type="button" class="priority-btn active" data-priority="low">Low</button>
+          <button type="button" class="priority-btn" data-priority="medium">Medium</button>
+          <button type="button" class="priority-btn" data-priority="high">High</button>
+        </div>
+
+        <!-- Notes -->
+        <label class="field-label" for="taskNotes">Notes <span class="optional">(optional)</span></label>
+        <textarea
+          id="taskNotes"
+          class="field-input field-textarea"
+          placeholder="Any extra details…"
+          rows="3"
+          maxlength="300"
+        ></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" id="btnCancelModal">Cancel</button>
+        <button class="btn-primary" id="btnSaveTask">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DELETE CONFIRM MODAL
+  ============================================================ -->
+  <div class="modal-backdrop" id="deleteBackdrop" role="dialog" aria-modal="true" aria-labelledby="deleteHeading" hidden>
+    <div class="modal modal--sm">
+      <div class="modal-header">
+        <h2 class="modal-heading" id="deleteHeading">Delete Task?</h2>
+      </div>
+      <div class="modal-body">
+        <p class="delete-msg">This action cannot be undone. The task will be permanently removed.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="btnCancelDelete">Keep it</button>
+        <button class="btn-danger" id="btnConfirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
